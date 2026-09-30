@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Logs - Admin Console{% endblock %}
+{% block header_title %}Security Audit Logs{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h4 class="fw-bold text-white mb-1"><i class="fas fa-receipt text-cyan me-2"></i> Security Audit Logs</h4>
+        <p class="text-muted small mb-0">System-wide event tracking, authentication events, and security audit trail</p>
+    </div>
+
+    <div class="btn-group" role="group">
+        <a href="{{ url_for('admin.logs', type='activity') }}" class="btn btn-sm btn-cyber-outline {% if log_type == 'activity' %}active border-info text-cyan{% endif %}">
+            <i class="fas fa-list-check me-1"></i> System Activity Logs
+        </a>
+        <a href="{{ url_for('admin.logs', type='login') }}" class="btn btn-sm btn-cyber-outline {% if log_type == 'login' %}active border-info text-cyan{% endif %}">
+            <i class="fas fa-key me-1"></i> Login Attempt Logs
+        </a>
+    </div>
+</div>
+
+<div class="cyber-card p-4">
+    {% if log_type == 'login' %}
+        <h5 class="fw-bold text-white mb-3">Login Attempt History</h5>
+        <div class="table-responsive">
+            <table class="table table-cyber align-middle">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User ID</th>
+                        <th>Username Input</th>
+                        <th>Status</th>
+                        <th>IP Address</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if login_logs %}
+                        {% for item in login_logs %}
+                        <tr>
+                            <td class="font-monospace text-muted small">#{{ item.id }}</td>
+                            <td class="font-monospace text-muted small">{{ item.user_id or 'Guest' }}</td>
+                            <td class="font-monospace text-light fw-bold">{{ item.username }}</td>
+                            <td>
+                                {% if item.success %}
+                                    <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i> Success</span>
+                                {% else %}
+                                    <span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i> Failed</span>
+                                {% endif %}
+                            </td>
+                            <td class="font-monospace text-muted small">{{ item.ip_address or '127.0.0.1' }}</td>
+                            <td class="text-muted small">{{ item.created_at|time_ago }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">No login attempts recorded.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <h5 class="fw-bold text-white mb-3">System Activity Audit Log</h5>
+        <div class="table-responsive">
+            <table class="table table-cyber align-middle">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User ID</th>
+                        <th>Event Action</th>
+                        <th>IP Address</th>
+                        <th>User Agent</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if activity_logs %}
+                        {% for item in activity_logs %}
+                        <tr>
+                            <td class="font-monospace text-muted small">#{{ item.id }}</td>
+                            <td class="font-monospace text-cyan">User #{{ item.user_id or 'System' }}</td>
+                            <td class="fw-semibold text-white"><i class="fas fa-chevron-right text-cyan me-2"></i> {{ item.action }}</td>
+                            <td class="font-monospace text-muted small">{{ item.ip_address or '127.0.0.1' }}</td>
+                            <td class="text-muted small" style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ item.user_agent or 'System' }}</td>
+                            <td class="text-muted small">{{ item.created_at|time_ago }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">No activity logs recorded.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

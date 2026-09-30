@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Login - SecureVault{% endblock %}
+
+{% block guest_content %}
+<div class="cyber-card p-4 p-sm-5 text-center position-relative overflow-hidden">
+    <!-- Top Accent Bar -->
+    <div class="position-absolute top-0 start-0 w-100" style="height: 4px; background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));"></div>
+
+    <div class="mb-4">
+        <div class="stat-icon mx-auto mb-3" style="width: 60px; height: 60px; font-size: 1.8rem; background: rgba(0, 242, 254, 0.1); color: var(--accent-blue);">
+            <i class="fas fa-shield-halved"></i>
+        </div>
+        <h3 class="fw-bold text-white mb-1">SecureVault</h3>
+        <p class="text-muted small">Enterprise Password & Credential Management</p>
+    </div>
+
+    <form action="{{ url_for('auth.login') }}" method="POST" class="text-start">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="mb-3">
+            <label class="form-label text-muted small fw-bold">Username or Email</label>
+            <div class="input-group">
+                <span class="input-group-text bg-dark border-secondary text-muted"><i class="fas fa-user"></i></span>
+                <input type="text" name="login_input" class="form-control form-control-cyber" placeholder="name@example.com or username" value="{{ login_input if login_input else '' }}" required autofocus>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label text-muted small fw-bold mb-0">Master Password</label>
+            </div>
+            <div class="input-group password-mask-group">
+                <span class="input-group-text bg-dark border-secondary text-muted"><i class="fas fa-key"></i></span>
+                <input type="password" name="password" id="loginPassword" class="form-control form-control-cyber" placeholder="••••••••••••" required>
+                <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('loginPassword', this)">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="mb-4 d-flex justify-content-between align-items-center">
+            <div class="form-check">
+                <input class="form-check-input bg-dark border-secondary" type="checkbox" name="remember" id="rememberMe">
+                <label class="form-check-label text-muted small" for="rememberMe">
+                    Remember me
+                </label>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-cyber w-100 py-2.5 mb-3">
+            <i class="fas fa-right-to-bracket me-2"></i> Unlock Vault
+        </button>
+
+        <div class="text-center text-muted small">
+            Don't have an account? <a href="{{ url_for('auth.register') }}" class="text-cyan text-decoration-none fw-bold ms-1">Register Now</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

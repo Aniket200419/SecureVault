@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - Admin Console{% endblock %}
+{% block header_title %}User Management{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+    <div>
+        <h4 class="fw-bold text-white mb-1"><i class="fas fa-users-gear text-purple me-2"></i> User Account Administration</h4>
+        <p class="text-muted small mb-0">View registered users, manage account active status, and grant administrator permissions</p>
+    </div>
+</div>
+
+<!-- Search Bar -->
+<div class="cyber-card p-3 mb-4">
+    <form action="{{ url_for('admin.users') }}" method="GET" class="row g-2">
+        <div class="col-md-8">
+            <div class="input-group">
+                <span class="input-group-text bg-dark border-secondary text-muted"><i class="fas fa-search"></i></span>
+                <input type="text" name="q" class="form-control form-control-cyber" placeholder="Search by full name, email, or username..." value="{{ search_query }}">
+            </div>
+        </div>
+        <div class="col-md-4 d-flex gap-2">
+            <button type="submit" class="btn btn-cyber w-100">Search Users</button>
+            <a href="{{ url_for('admin.users') }}" class="btn btn-cyber-outline">Reset</a>
+        </div>
+    </form>
+</div>
+
+<!-- User Table -->
+<div class="cyber-card p-4">
+    <div class="table-responsive">
+        <table class="table table-cyber align-middle">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>User Details</th>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Registered</th>
+                    <th>Last Login</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if users %}
+                    {% for u in users %}
+                    <tr>
+                        <td class="font-monospace text-muted small">#{{ u.id }}</td>
+                        <td>
+                            <div class="fw-bold text-white">{{ u.full_name }}</div>
+                            <div class="small text-muted">{{ u.email }}</div>
+                        </td>
+                        <td class="font-monospace text-cyan">@{{ u.username }}</td>
+                        <td>
+                            {% if u.role == 'admin' %}
+                                <span class="badge bg-purple"><i class="fas fa-user-shield me-1"></i> ADMIN</span>
+                            {% else %}
+                                <span class="badge bg-secondary"><i class="fas fa-user me-1"></i> USER</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if u.is_active %}
+                                <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i> Active</span>
+                            {% else %}
+                                <span class="badge bg-danger"><i class="fas fa-ban me-1"></i> Deactivated</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted small">{{ u.created_at|time_ago }}</td>
+                        <td class="text-muted small">{{ u.last_login|time_ago if u.last_login else 'Never' }}</td>
+                        <td class="text-end">
+                            <div class="d-flex align-items-center justify-content-end gap-2">
+                                <!-- Status Toggle Button -->
+                                <form action="{{ url_for('admin.toggle_user_status', id=u.id) }}" method="POST" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    {% if u.is_active %}
+                                    <button type="submit" class="btn btn-sm btn-outline-warning" title="Deactivate User" {% if u.id == session['user_id'] %}disabled{% endif %}>
+                                        <i class="fas fa-user-slash"></i>
+                                    </button>
+                                    {% else %}
+                                    <button type="submit" class="btn btn-sm btn-outline-success" title="Activate User">
+                                        <i class="fas fa-user-check"></i>
+                                    </button>
+                                    {% endif %}
+                                </form>
+
+                                <!-- Role Toggle Button -->
+                                <form action="{{ url_for('admin.toggle_user_role', id=u.id) }}" method="POST" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-cyber-outline" title="Toggle Role (User/Admin)" {% if u.id == session['user_id'] %}disabled{% endif %}>
+                                        <i class="fas fa-shield-halved"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">No users found matching query.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

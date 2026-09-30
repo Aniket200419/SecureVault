@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Console - SecureVault{% endblock %}
+{% block header_title %}System Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h4 class="fw-bold text-white mb-1"><i class="fas fa-user-shield text-purple me-2"></i> System Administration Console</h4>
+        <p class="text-muted small mb-0">System status, user management, and security audit logs</p>
+    </div>
+    <div class="badge bg-purple px-3 py-2 fs-6">
+        <i class="fas fa-lock me-1"></i> Privacy Protected (Passwords Encrypted)
+    </div>
+</div>
+
+<!-- Admin Stat Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="cyber-card stat-card stat-cyan d-flex align-items-center justify-content-between">
+            <div>
+                <div class="text-muted small fw-bold text-uppercase">Total Users</div>
+                <h2 class="fw-bold text-white mb-0 mt-1">{{ total_users }}</h2>
+            </div>
+            <div class="stat-icon text-cyan">
+                <i class="fas fa-users"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="cyber-card stat-card stat-green d-flex align-items-center justify-content-between">
+            <div>
+                <div class="text-muted small fw-bold text-uppercase">Active Users</div>
+                <h2 class="fw-bold text-white mb-0 mt-1">{{ active_users }}</h2>
+            </div>
+            <div class="stat-icon text-green">
+                <i class="fas fa-user-check"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="cyber-card stat-card stat-purple d-flex align-items-center justify-content-between">
+            <div>
+                <div class="text-muted small fw-bold text-uppercase">Total Credentials</div>
+                <h2 class="fw-bold text-white mb-0 mt-1">{{ total_credentials }}</h2>
+            </div>
+            <div class="stat-icon text-purple">
+                <i class="fas fa-vault"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="cyber-card stat-card stat-danger d-flex align-items-center justify-content-between">
+            <div>
+                <div class="text-muted small fw-bold text-uppercase">Failed Logins</div>
+                <h2 class="fw-bold text-white mb-0 mt-1">{{ failed_logins }}</h2>
+            </div>
+            <div class="stat-icon text-danger">
+                <i class="fas fa-shield-cat"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Admin Actions & Suspicious Attempts -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-6">
+        <div class="cyber-card p-4 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h6 class="fw-bold text-white m-0"><i class="fas fa-triangle-exclamation text-danger me-2"></i> Failed Login Attempts / Suspicious Activity</h6>
+                <a href="{{ url_for('admin.logs', type='login') }}" class="small text-cyan text-decoration-none">View All</a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-cyber align-middle">
+                    <thead>
+                        <tr>
+                            <th>Username Input</th>
+                            <th>IP Address</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if suspicious_attempts %}
+                            {% for attempt in suspicious_attempts %}
+                            <tr>
+                                <td class="font-monospace text-warning"><i class="fas fa-user-xmark me-2"></i> {{ attempt.username }}</td>
+                                <td class="font-monospace text-muted small">{{ attempt.ip_address or '127.0.0.1' }}</td>
+                                <td class="text-muted small">{{ attempt.created_at|time_ago }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-3">No suspicious login attempts recorded.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="cyber-card p-4 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h6 class="fw-bold text-white m-0"><i class="fas fa-stream text-cyan me-2"></i> System Activity Audit</h6>
+                <a href="{{ url_for('admin.logs', type='activity') }}" class="small text-cyan text-decoration-none">View Audit Log</a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-cyber align-middle">
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Action</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if recent_logs %}
+                            {% for log in recent_logs %}
+                            <tr>
+                                <td class="font-monospace text-muted small">ID: #{{ log.user_id or 'Guest' }}</td>
+                                <td class="text-light small fw-semibold">{{ log.action }}</td>
+                                <td class="text-muted small">{{ log.created_at|time_ago }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-3">No activity logs recorded yet.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

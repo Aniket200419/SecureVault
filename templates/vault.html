@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Password Vault - SecureVault{% endblock %}
+{% block header_title %}Password Vault{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+    <div>
+        <h4 class="fw-bold text-white mb-1">Vault Inventory</h4>
+        <p class="text-muted small mb-0">Securely store, search, and manage your encrypted login credentials</p>
+    </div>
+    <a href="{{ url_for('vault.add') }}" class="btn btn-cyber">
+        <i class="fas fa-plus me-2"></i> Add Password
+    </a>
+</div>
+
+<!-- Search & Filter Controls -->
+<div class="cyber-card p-3 mb-4">
+    <div class="row g-3 align-items-center">
+        <!-- Live Search Input -->
+        <div class="col-md-5">
+            <div class="input-group">
+                <span class="input-group-text bg-dark border-secondary text-muted"><i class="fas fa-search"></i></span>
+                <input type="text" id="vaultSearchInput" class="form-control form-control-cyber" placeholder="Search by website, username, or category..." value="{{ search_query }}">
+            </div>
+        </div>
+
+        <!-- Category Dropdown -->
+        <div class="col-md-3">
+            <select id="vaultCategorySelect" class="form-select form-select-cyber">
+                <option value="">All Categories</option>
+                {% for cat in categories %}
+                <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Quick Filter Tabs -->
+        <div class="col-md-4">
+            <div class="btn-group w-100" role="group">
+                <a href="{{ url_for('vault.index', filter='all', category=selected_category) }}" class="btn btn-sm btn-cyber-outline {% if selected_filter == 'all' %}active border-info text-cyan{% endif %}">All</a>
+                <a href="{{ url_for('vault.index', filter='favorites', category=selected_category) }}" class="btn btn-sm btn-cyber-outline {% if selected_filter == 'favorites' %}active border-info text-cyan{% endif %}"><i class="fas fa-star me-1 text-warning"></i> Favs</a>
+                <a href="{{ url_for('vault.index', filter='weak', category=selected_category) }}" class="btn btn-sm btn-cyber-outline {% if selected_filter == 'weak' %}active border-info text-cyan{% endif %}">Weak</a>
+                <a href="{{ url_for('vault.index', filter='strong', category=selected_category) }}" class="btn btn-sm btn-cyber-outline {% if selected_filter == 'strong' %}active border-info text-cyan{% endif %}">Strong</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Vault Inventory Table -->
+<div class="cyber-card p-4">
+    <div class="table-responsive">
+        <table class="table table-cyber align-middle">
+            <thead>
+                <tr>
+                    <th style="width: 40px;"></th>
+                    <th>Website / Service</th>
+                    <th>Username / Email</th>
+                    <th>Password</th>
+                    <th>Category</th>
+                    <th>Strength</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if credentials %}
+                    {% for item in credentials %}
+                    <tr class="vault-item-row">
+                        <!-- Favorite Toggle -->
+                        <td>
+                            <form action="{{ url_for('vault.toggle_favorite', id=item.id) }}" method="POST" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn p-0 border-0 text-muted">
+                                    <i class="fas fa-star {% if item.is_favorite %}text-warning{% else %}text-secondary opacity-50{% endif %}" title="Toggle Favorite"></i>
+                                </button>
+                            </form>
+                        </td>
+
+                        <!-- Website & URL -->
+                        <td>
+                            <div class="fw-bold text-white">{{ item.website_name }}</div>
+                            {% if item.website_url %}
+                            <a href="{{ item.website_url }}" target="_blank" rel="noopener noreferrer" class="small text-muted text-decoration-none">
+                                <i class="fas fa-external-link-alt me-1" style="font-size: 0.75rem;"></i> {{ item.website_url }}
+                            </a>
+                            {% endif %}
+                        </td>
+
+                        <!-- Username -->
+                        <td class="font-monospace text-light">
+                            {{ item.username }}
+                        </td>
+
+                        <!-- Password Mask & Reveal -->
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="font-monospace text-muted" id="pwd_val_{{ item.id }}" data-revealed="false">••••••••••••</span>
+                                <button type="button" class="btn btn-sm text-muted p-1 border-0" onclick="revealVaultPassword({{ item.id }}, this, 'pwd_val_{{ item.id }}')" title="Show Password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm text-cyan p-1 border-0" onclick="copyVaultPassword({{ item.id }})" title="Copy Password">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </td>
+
+                        <!-- Category -->
+                        <td>
+                            <span class="badge {{ item.category|category_badge }}">{{ item.category }}</span>
+                        </td>
+
+                        <!-- Password Strength -->
+                        <td>
+                            {% if item.strength.rating == 'Very Strong' %}
+                                <span class="badge bg-success"><i class="fas fa-shield-check me-1"></i> Very Strong</span>
+                            {% elif item.strength.rating == 'Strong' %}
+                                <span class="badge bg-info text-dark"><i class="fas fa-check me-1"></i> Strong</span>
+                            {% elif item.strength.rating == 'Medium' %}
+                                <span class="badge bg-warning text-dark"><i class="fas fa-minus me-1"></i> Medium</span>
+                            {% else %}
+                                <span class="badge bg-danger"><i class="fas fa-exclamation-triangle me-1"></i> Weak</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Action Buttons -->
+                        <td class="text-end">
+                            <div class="d-flex align-items-center justify-content-end gap-2">
+                                <a href="{{ url_for('vault.edit', id=item.id) }}" class="btn btn-sm btn-cyber-outline" title="Edit Credential">
+                                    <i class="fas fa-pen-to-square"></i>
+                                </a>
+                                
+                                <form action="{{ url_for('vault.delete', id=item.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete the credential for {{ item.website_name }}?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Credential">
+                                        <i class="fas fa-trash-can"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="fas fa-vault fs-1 mb-3 text-secondary d-block"></i>
+                            <h5>No Credentials Found</h5>
+                            <p class="small mb-3">Your password vault is currently empty or no items match your search filter.</p>
+                            <a href="{{ url_for('vault.add') }}" class="btn btn-sm btn-cyber">
+                                <i class="fas fa-plus me-1"></i> Add First Credential
+                            </a>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/vault.js') }}"></script>
+{% endblock %}

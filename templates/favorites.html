@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Favorites - SecureVault{% endblock %}
+{% block header_title %}Favorite Credentials{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h4 class="fw-bold text-white mb-1"><i class="fas fa-star text-warning me-2"></i> Favorites</h4>
+        <p class="text-muted small mb-0">Quick access to your most frequently used credentials</p>
+    </div>
+    <a href="{{ url_for('vault.add') }}" class="btn btn-cyber">
+        <i class="fas fa-plus me-1"></i> Add Credential
+    </a>
+</div>
+
+<div class="cyber-card p-4">
+    <div class="table-responsive">
+        <table class="table table-cyber align-middle">
+            <thead>
+                <tr>
+                    <th>Website / App</th>
+                    <th>Username / Email</th>
+                    <th>Password</th>
+                    <th>Category</th>
+                    <th>Last Updated</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if credentials %}
+                    {% for item in credentials %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold text-white"><i class="fas fa-star text-warning me-2"></i> {{ item.website_name }}</div>
+                            {% if item.website_url %}
+                            <a href="{{ item.website_url }}" target="_blank" class="small text-muted text-decoration-none">{{ item.website_url }}</a>
+                            {% endif %}
+                        </td>
+                        <td class="font-monospace text-light">{{ item.username }}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="font-monospace text-muted" id="fav_pwd_{{ item.id }}" data-revealed="false">••••••••••••</span>
+                                <button type="button" class="btn btn-sm text-muted p-1 border-0" onclick="revealVaultPassword({{ item.id }}, this, 'fav_pwd_{{ item.id }}')">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm text-cyan p-1 border-0" onclick="copyVaultPassword({{ item.id }})">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td><span class="badge {{ item.category|category_badge }}">{{ item.category }}</span></td>
+                        <td class="text-muted small">{{ item.updated_at|time_ago }}</td>
+                        <td class="text-end">
+                            <a href="{{ url_for('vault.edit', id=item.id) }}" class="btn btn-sm btn-cyber-outline">
+                                <i class="fas fa-pen-to-square"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="fas fa-star fs-1 text-secondary opacity-50 mb-3 d-block"></i>
+                            <h5>No Favorites Marked</h5>
+                            <p class="small mb-0">Star your favorite credentials in the Vault to access them quickly here.</p>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/vault.js') }}"></script>
+{% endblock %}

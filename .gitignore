@@ -1,0 +1,29 @@
+# Environment files
+.env
+.env.local
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# Python cache and build files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Database files
+instance/*.db
+*.sqlite3
+
+# Logs
+*.log
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp

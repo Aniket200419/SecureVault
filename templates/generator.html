@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Password Generator - SecureVault{% endblock %}
+{% block header_title %}Password Generator{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="cyber-card p-4 p-sm-5 mb-4">
+            <div class="text-center mb-4">
+                <div class="stat-icon mx-auto mb-2" style="width: 56px; height: 56px; font-size: 1.6rem; background: rgba(0, 242, 254, 0.1); color: var(--accent-blue);">
+                    <i class="fas fa-wand-magic-sparkles"></i>
+                </div>
+                <h4 class="fw-bold text-white mb-1">Cryptographic Password Generator</h4>
+                <p class="text-muted small">Generate strong, unpredictable, high-entropy passwords</p>
+            </div>
+
+            <!-- Password Display & Copy Field -->
+            <div class="mb-4">
+                <div class="input-group input-group-lg password-mask-group">
+                    <input type="text" id="genOutput" class="form-control form-control-cyber font-monospace fs-4 text-cyan" readonly>
+                    <button type="button" class="btn btn-cyber px-4" id="genCopyBtn" title="Copy to Clipboard">
+                        <i class="fas fa-copy me-2"></i> Copy
+                    </button>
+                    <button type="button" class="btn btn-cyber-outline px-3" id="genBtn" title="Regenerate Password">
+                        <i class="fas fa-arrows-rotate"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Password Strength Bar & Label -->
+            <div class="cyber-card p-3 mb-4 bg-dark border-secondary">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small fw-bold text-muted">PASSWORD STRENGTH</span>
+                    <span class="small fw-bold text-cyan" id="strengthMeterLabel">Strong</span>
+                </div>
+                <div class="strength-meter-bar">
+                    <div class="strength-meter-fill strength-strong" id="strengthMeterFill" style="width: 80%;"></div>
+                </div>
+            </div>
+
+            <!-- Controls Grid -->
+            <div class="row g-4 mb-4">
+                <!-- Length Slider -->
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label text-white small fw-bold mb-0">Password Length</label>
+                        <span class="badge bg-cyan text-dark font-monospace fs-6 px-3" id="genLengthVal">16</span>
+                    </div>
+                    <input type="range" class="form-range" id="genLengthRange" min="8" max="64" value="16" step="1">
+                </div>
+
+                <!-- Checkbox Options -->
+                <div class="col-sm-6">
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input bg-dark border-secondary" type="checkbox" id="genUppercase" checked>
+                        <label class="form-check-label text-light small" for="genUppercase">Uppercase Letters (A-Z)</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input bg-dark border-secondary" type="checkbox" id="genLowercase" checked>
+                        <label class="form-check-label text-light small" for="genLowercase">Lowercase Letters (a-z)</label>
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input bg-dark border-secondary" type="checkbox" id="genNumbers" checked>
+                        <label class="form-check-label text-light small" for="genNumbers">Numbers (0-9)</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input bg-dark border-secondary" type="checkbox" id="genSymbols" checked>
+                        <label class="form-check-label text-light small" for="genSymbols">Special Symbols (!@#$%^&*)</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visual Criteria Checklist -->
+            <div class="cyber-card p-3 bg-dark border-secondary">
+                <div class="small fw-bold text-muted mb-2">SECURITY CRITERIA CHECKLIST</div>
+                <div class="row g-2 small">
+                    <div class="col-sm-4 text-muted" id="checkLength"><i class="fas fa-times-circle me-2"></i> Length (8+ chars)</div>
+                    <div class="col-sm-4 text-muted" id="checkUpper"><i class="fas fa-times-circle me-2"></i> Uppercase</div>
+                    <div class="col-sm-4 text-muted" id="checkLower"><i class="fas fa-times-circle me-2"></i> Lowercase</div>
+                    <div class="col-sm-4 text-muted" id="checkNumber"><i class="fas fa-times-circle me-2"></i> Number</div>
+                    <div class="col-sm-4 text-muted" id="checkSpecial"><i class="fas fa-times-circle me-2"></i> Special Character</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/generator.js') }}"></script>
+{% endblock %}

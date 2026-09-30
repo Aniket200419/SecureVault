@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}Security Dashboard - SecureVault{% endblock %}
+{% block header_title %}Security & Auditing{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h4 class="fw-bold text-white mb-1"><i class="fas fa-shield-virus text-cyan me-2"></i> Vault Security Overview</h4>
+        <p class="text-muted small mb-0">Automated password analysis, reuse detection, and security audit logs</p>
+    </div>
+    <a href="{{ url_for('security.change_master_password') }}" class="btn btn-cyber">
+        <i class="fas fa-key me-2"></i> Change Master Password
+    </a>
+</div>
+
+<!-- Security Score & Metrics Header Row -->
+<div class="row g-3 mb-4">
+    <!-- Overall Security Score Card -->
+    <div class="col-lg-4">
+        <div class="cyber-card p-4 text-center h-100 position-relative overflow-hidden">
+            <div class="text-muted small fw-bold text-uppercase mb-3">Overall Security Score</div>
+            <div class="position-relative d-inline-block mb-3">
+                <div class="display-3 fw-bold text-cyan font-monospace">{{ security_info.overall_score }}%</div>
+            </div>
+            <div class="progress bg-dark mb-3" style="height: 10px;">
+                <div class="progress-bar {% if security_info.overall_score >= 80 %}bg-success{% elif security_info.overall_score >= 60 %}bg-info{% elif security_info.overall_score >= 40 %}bg-warning{% else %}bg-danger{% endif %}" 
+                     role="progressbar" style="width: {{ security_info.overall_score }}%;"></div>
+            </div>
+            <p class="small text-muted mb-0">
+                {% if security_info.overall_score >= 80 %}
+                    <i class="fas fa-check-circle text-success me-1"></i> Excellent! Vault credentials adhere to high cryptographic standards.
+                {% else %}
+                    <i class="fas fa-triangle-exclamation text-warning me-1"></i> Action required: Address weak or reused passwords below.
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <!-- Security Counts Grid -->
+    <div class="col-lg-8">
+        <div class="row g-3 h-100">
+            <div class="col-sm-6">
+                <div class="cyber-card p-3 d-flex align-items-center justify-content-between h-100 border-start border-success border-4">
+                    <div>
+                        <div class="text-muted small">Strong Passwords</div>
+                        <div class="fs-3 fw-bold text-white">{{ security_info.strong_count }}</div>
+                    </div>
+                    <i class="fas fa-shield-check fs-1 text-success opacity-50"></i>
+                </div>
+            </div>
+
+            <div class="col-sm-6">
+                <div class="cyber-card p-3 d-flex align-items-center justify-content-between h-100 border-start border-danger border-4">
+                    <div>
+                        <div class="text-muted small">Weak Passwords</div>
+                        <div class="fs-3 fw-bold text-white">{{ security_info.weak_count }}</div>
+                    </div>
+                    <i class="fas fa-triangle-exclamation fs-1 text-danger opacity-50"></i>
+                </div>
+            </div>
+
+            <div class="col-sm-6">
+                <div class="cyber-card p-3 d-flex align-items-center justify-content-between h-100 border-start border-warning border-4">
+                    <div>
+                        <div class="text-muted small">Reused Passwords</div>
+                        <div class="fs-3 fw-bold text-white">{{ security_info.reused_count }}</div>
+                    </div>
+                    <i class="fas fa-copy fs-1 text-warning opacity-50"></i>
+                </div>
+            </div>
+
+            <div class="col-sm-6">
+                <div class="cyber-card p-3 d-flex align-items-center justify-content-between h-100 border-start border-info border-4">
+                    <div>
+                        <div class="text-muted small">Old Passwords (>90 days)</div>
+                        <div class="fs-3 fw-bold text-white">{{ security_info.old_count }}</div>
+                    </div>
+                    <i class="fas fa-clock fs-1 text-info opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Password Reuse Warning Section -->
+{% if reused_clusters %}
+<div class="cyber-card p-4 mb-4 border-start border-warning border-4">
+    <h5 class="fw-bold text-warning mb-2"><i class="fas fa-triangle-exclamation me-2"></i> Password Reuse Warnings</h5>
+    <p class="text-muted small mb-3">You are using identical passwords across multiple accounts. Reusing passwords increases risk if one account is compromised.</p>
+    
+    <div class="d-flex flex-column gap-3">
+        {% for cluster in reused_clusters %}
+        <div class="p-3 bg-dark border border-secondary rounded">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="fw-bold text-white"><i class="fas fa-key me-2 text-warning"></i> Password shared across {{ cluster.count }} accounts:</span>
+                <span class="badge bg-warning text-dark">High Risk</span>
+            </div>
+            <div class="d-flex flex-wrap gap-2 mb-2">
+                {% for site in cluster.websites %}
+                <span class="badge bg-secondary"><i class="fas fa-globe me-1"></i> {{ site }}</span>
+                {% endfor %}
+            </div>
+            <div class="small text-muted"><i class="fas fa-lightbulb text-cyan me-1"></i> Recommendation: Generate unique passwords for each of these accounts.</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Weak Passwords List -->
+{% if weak_credentials %}
+<div class="cyber-card p-4 mb-4">
+    <h5 class="fw-bold text-white mb-3"><i class="fas fa-triangle-exclamation text-danger me-2"></i> Weak Passwords Requiring Attention</h5>
+    <div class="table-responsive">
+        <table class="table table-cyber align-middle">
+            <thead>
+                <tr>
+                    <th>Website</th>
+                    <th>Username</th>
+                    <th>Issues Detected</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in weak_credentials %}
+                <tr>
+                    <td class="fw-bold text-white">{{ item.credential.website_name }}</td>
+                    <td class="text-muted font-monospace">{{ item.credential.username }}</td>
+                    <td>
+                        <div class="d-flex flex-wrap gap-1">
+                            {% if not item.analysis.checks.has_length %}
+                            <span class="badge bg-danger">Short Length</span>
+                            {% endif %}
+                            {% if not item.analysis.checks.has_uppercase %}
+                            <span class="badge bg-secondary">No Uppercase</span>
+                            {% endif %}
+                            {% if not item.analysis.checks.has_number %}
+                            <span class="badge bg-secondary">No Number</span>
+                            {% endif %}
+                            {% if not item.analysis.checks.has_special %}
+                            <span class="badge bg-secondary">No Symbol</span>
+                            {% endif %}
+                            {% if not item.analysis.checks.not_common %}
+                            <span class="badge bg-danger">Common Weak Word</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ url_for('vault.edit', id=item.credential.id) }}" class="btn btn-sm btn-cyber">
+                            <i class="fas fa-wand-magic-sparkles me-1"></i> Strengthen
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Recent Login Attempts Audit Table -->
+<div class="cyber-card p-4">
+    <h5 class="fw-bold text-white mb-3"><i class="fas fa-user-shield text-cyan me-2"></i> Recent Account Access & Login Activity</h5>
+    <div class="table-responsive">
+        <table class="table table-cyber align-middle">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Status</th>
+                    <th>IP Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if login_attempts %}
+                    {% for attempt in login_attempts %}
+                    <tr>
+                        <td class="text-muted small">{{ attempt.created_at|time_ago }}</td>
+                        <td>
+                            {% if attempt.success %}
+                                <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i> Successful Login</span>
+                            {% else %}
+                                <span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i> Failed Login Attempt</span>
+                            {% endif %}
+                        </td>
+                        <td class="font-monospace text-light small">{{ attempt.ip_address or '127.0.0.1' }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="3" class="text-center text-muted py-3">No login logs recorded.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

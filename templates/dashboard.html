@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - SecureVault{% endblock %}
+{% block header_title %}Security Dashboard{% endblock %}
+
+{% block content %}
+<!-- Top Metrics Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="cyber-card stat-card stat-cyan d-flex align-items-center justify-content-between">
+            <div>
+                <div class="text-muted small fw-bold text-uppercase">Total Passwords</div>
+                <h2 class="fw-bold text-white mb-0 mt-1">{{ total_credentials }}</h2>
+            </div>
+            <div class="stat-icon text-cyan">
+                <i class="fas fa-key"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="cyber-card stat-card stat-purple d-flex align-items-center justify-content-between">
+            <div>
+                <div class="text-muted small fw-bold text-uppercase">Favorites</div>
+                <h2 class="fw-bold text-white mb-0 mt-1">{{ favorites_count }}</h2>
+            </div>
+            <div class="stat-icon text-purple">
+                <i class="fas fa-star"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="cyber-card stat-card stat-danger d-flex align-items-center justify-content-between">
+            <div>
+                <div class="text-muted small fw-bold text-uppercase">Weak Passwords</div>
+                <h2 class="fw-bold text-white mb-0 mt-1">{{ security_info.weak_count }}</h2>
+            </div>
+            <div class="stat-icon text-danger">
+                <i class="fas fa-shield-triangle-exclamation"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="cyber-card stat-card stat-green d-flex align-items-center justify-content-between">
+            <div>
+                <div class="text-muted small fw-bold text-uppercase">Security Score</div>
+                <h2 class="fw-bold text-white mb-0 mt-1">{{ security_info.overall_score }}%</h2>
+            </div>
+            <div class="stat-icon text-green">
+                <i class="fas fa-shield-check"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Security Alerts & Quick Actions Row -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-8">
+        <div class="cyber-card p-4 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h6 class="fw-bold text-white m-0"><i class="fas fa-bell me-2 text-warning"></i> Security Insights & Alerts</h6>
+                <a href="{{ url_for('security.index') }}" class="btn btn-sm btn-cyber-outline">Security Center</a>
+            </div>
+
+            {% if security_info.alerts %}
+                <div class="d-flex flex-column gap-2">
+                {% for alert in security_info.alerts %}
+                    <div class="p-3 rounded bg-dark border border-secondary d-flex align-items-center justify-content-between">
+                        <span class="small text-light"><i class="fas fa-circle-info me-2 text-cyan"></i> {{ alert }}</span>
+                        <a href="{{ url_for('security.index') }}" class="btn btn-sm btn-outline-info">Resolve</a>
+                    </div>
+                {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted small m-0">No active security warnings detected in your vault.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="cyber-card p-4 h-100">
+            <h6 class="fw-bold text-white mb-3"><i class="fas fa-bolt me-2 text-cyan"></i> Quick Tools</h6>
+            <div class="d-grid gap-2">
+                <a href="{{ url_for('vault.add') }}" class="btn btn-cyber py-2">
+                    <i class="fas fa-plus-circle me-2"></i> Add New Credential
+                </a>
+                <a href="{{ url_for('security.generator') }}" class="btn btn-cyber-outline py-2 text-white">
+                    <i class="fas fa-wand-magic-sparkles me-2 text-purple"></i> Generate Strong Password
+                </a>
+                <a href="{{ url_for('vault.index') }}" class="btn btn-cyber-outline py-2 text-white">
+                    <i class="fas fa-vault me-2 text-info"></i> View All Credentials
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Categories Breakdown Grid -->
+<div class="mb-4">
+    <h6 class="fw-bold text-white mb-3"><i class="fas fa-folder-tree me-2 text-cyan"></i> Vault Categories</h6>
+    <div class="row g-2">
+        {% for cat_name, count in category_counts.items() %}
+        <div class="col-6 col-sm-4 col-md-3 col-xl-1.5">
+            <a href="{{ url_for('vault.index', category=cat_name) }}" class="text-decoration-none">
+                <div class="cyber-card p-3 text-center h-100">
+                    <span class="badge {{ cat_name|category_badge }} mb-2">{{ cat_name }}</span>
+                    <div class="fw-bold text-white fs-5">{{ count }}</div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Recently Added & Recently Accessed Tables -->
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="cyber-card p-4">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h6 class="fw-bold text-white m-0"><i class="fas fa-clock-rotate-left me-2 text-cyan"></i> Recently Added</h6>
+                <a href="{{ url_for('vault.index') }}" class="small text-cyan text-decoration-none">View Vault</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-cyber">
+                    <thead>
+                        <tr>
+                            <th>Website</th>
+                            <th>Username</th>
+                            <th>Category</th>
+                            <th>Added</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if recently_added %}
+                            {% for item in recently_added %}
+                            <tr>
+                                <td class="fw-semibold text-white">
+                                    <i class="fas fa-globe me-1 text-muted"></i> {{ item.website_name }}
+                                </td>
+                                <td class="text-muted small">{{ item.username }}</td>
+                                <td><span class="badge {{ item.category|category_badge }}">{{ item.category }}</span></td>
+                                <td class="text-muted small">{{ item.created_at|time_ago }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-3">No credentials added yet.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="cyber-card p-4">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h6 class="fw-bold text-white m-0"><i class="fas fa-arrows-rotate me-2 text-purple"></i> Recently Updated</h6>
+                <a href="{{ url_for('vault.index') }}" class="small text-cyan text-decoration-none">Manage Vault</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-cyber">
+                    <thead>
+                        <tr>
+                            <th>Website</th>
+                            <th>Username</th>
+                            <th>Category</th>
+                            <th>Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if recently_updated %}
+                            {% for item in recently_updated %}
+                            <tr>
+                                <td class="fw-semibold text-white">
+                                    <i class="fas fa-key me-1 text-muted"></i> {{ item.website_name }}
+                                </td>
+                                <td class="text-muted small">{{ item.username }}</td>
+                                <td><span class="badge {{ item.category|category_badge }}">{{ item.category }}</span></td>
+                                <td class="text-muted small">{{ item.updated_at|time_ago }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-3">No activity recorded.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
